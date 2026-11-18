@@ -501,12 +501,18 @@ struct LearningReviewView: View {
 
     @ViewBuilder private func reviewContent(word: String) -> some View {
         VStack(alignment: .leading, spacing: 15) {
-            if let purpose = learning.currentReviewPurpose {
-                Text(purpose.title)
-                    .font(.system(size: 10, weight: .semibold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(WordShelfTheme.subtle, in: Capsule())
+            HStack(alignment: .center) {
+                if let purpose = learning.currentReviewPurpose {
+                    Text(purpose.title)
+                        .font(.system(size: 10, weight: .semibold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(WordShelfTheme.subtle, in: Capsule())
+                }
+                Spacer()
+                if !learning.reviewIsLoading, learning.reviewLoadError == nil, !learning.reviewRevealed {
+                    UseleafMascotView(pose: .recall, size: 56)
+                }
             }
             if learning.currentReviewPurpose == .understand {
                 Text(word)
@@ -667,10 +673,7 @@ struct LearningReviewView: View {
 
     private var finishedContent: some View {
         VStack(alignment: .leading, spacing: 15) {
-            Image(systemName: "checkmark.circle")
-                .font(.system(size: 35, weight: .light))
-                .foregroundStyle(WordShelfTheme.accent)
-                .accessibilityHidden(true)
+            UseleafMascotView(pose: .rest, size: 66)
             Text("本轮回想了 \(learning.reviewCompleted) 条")
                 .font(.system(size: 22, weight: .semibold))
                 .accessibilityIdentifier("learning.review.completed")

@@ -15,11 +15,21 @@ enum PronunciationSource: Equatable {
     case notebook(String)
 }
 
+/// An in-memory confirmation of one completed insertion, never a lookup or
+/// persisted learning signal. Its identity lets the view acknowledge it once.
+struct SaveConfirmation: Equatable, Identifiable {
+    let id = UUID()
+    let original: String
+}
+
 @MainActor
 final class AppModel: ObservableObject {
     @Published var query = "" {
         didSet {
-            if query != oldValue { stopPronunciation() }
+            if query != oldValue {
+                stopPronunciation()
+                saveConfirmation = nil
+            }
         }
     }
     @Published private(set) var lookupState: LookupState = .idle
@@ -36,6 +46,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var playingAccent: PronunciationAccent?
     @Published private(set) var pronunciationError: String?
     @Published private(set) var pronunciationSource: PronunciationSource?
+    @Published private(set) var saveConfirmation: SaveConfirmation?
 
     let store: WordStore
     let learning: LearningModel
@@ -88,6 +99,13 @@ final class AppModel: ObservableObject {
     }
     var canUndoRemoval: Bool { removedWord != nil }
     var canPronounce: Bool { SelectionText.normalize(query) != nil }
+    var currentSaveConfirmation: SaveConfirmation? {
+        guard let confirmation = saveConfirmation,
+              confirmation.original == lookupWord,
+              SelectionText.normalize(query) == confirmation.original,
+              store.contains(confirmation.original) else { return nil }
+        return confirmation
+    }
 
     func pronounce(_ accent: PronunciationAccent) {
         guard let original = SelectionText.normalize(query) else { return }
@@ -132,6 +150,7 @@ final class AppModel: ObservableObject {
 
     func lookup(_ raw: String? = nil) {
         stopPronunciation()
+        saveConfirmation = nil
         if let raw { query = raw }
         lookupTask?.cancel()
         lookupID = UUID()
@@ -191,6 +210,7 @@ final class AppModel: ObservableObject {
 
     func cancelLookup() {
         stopPronunciation()
+        saveConfirmation = nil
         lookupTask?.cancel()
         lookupID = UUID()
     }
@@ -224,18 +244,25 @@ final class AppModel: ObservableObject {
     }
 
     func saveCurrentWord() {
+        saveConfirmation = nil
         guard let word = lookupWord, SelectionText.normalize(query) == word else { return }
         do {
             let inserted = try store.add(word)
             learning.syncCollection(words)
             learning.noteEncounter(word)
-            notice = inserted ? "已收藏原文" : "这条原文已在生词本中"
+            if inserted {
+                notice = nil
+                saveConfirmation = SaveConfirmation(original: word)
+            } else {
+                notice = "这条原文已在生词本中"
+            }
         } catch { notice = "收藏失败：\(error.localizedDescription)" }
     }
 
     func removeWord(_ word: String) {
         do {
             try store.remove(word)
+            if saveConfirmation?.original == word { saveConfirmation = nil }
             learning.syncCollection(words)
             if pronunciationSource == .notebook(word) { stopPronunciation() }
             removedWord = word
@@ -254,7 +281,10 @@ final class AppModel: ObservableObject {
     }
 
     func showNotebook() { onShowNotebook() }
-    func dismissPopup() { onDismissPopup() }
+    func dismissPopup() {
+        saveConfirmation = nil
+        onDismissPopup()
+    }
     func requestAccessibility() { onRequestAccessibility() }
     func showManualLookup() { onShowManualLookup() }
 

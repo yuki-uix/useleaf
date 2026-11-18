@@ -1,8 +1,8 @@
 # 隐私说明 / Privacy
 
-拾用 · Useleaf 0.7.0 在本机完成查词、翻译、发音和学习推荐。应用没有账户、遥测、广告 SDK 或云端同步，不向第三方翻译网站或云端大模型发送选文、收藏与场景资料。
+拾用 · Useleaf 0.7.1 在本机完成查词、翻译、发音和学习推荐。应用没有账户、遥测、广告 SDK 或云端同步，不向第三方翻译网站或云端大模型发送选文、收藏与场景资料。
 
-Useleaf 0.7.0 performs lookup, translation, pronunciation and learning recommendations on your Mac. The app has no account system, telemetry, advertising SDK or cloud sync, and does not send selections, collections or learning profiles to third-party translation sites or cloud language models.
+Useleaf 0.7.1 performs lookup, translation, pronunciation and learning recommendations on your Mac. The app has no account system, telemetry, advertising SDK or cloud sync, and does not send selections, collections or learning profiles to third-party translation sites or cloud language models.
 
 ## 本地文件 / Local files
 
@@ -44,3 +44,7 @@ The bundled ECDICT dictionary and frequency data are queried locally. Recommenda
 应用的系统诊断日志仅记录快捷键和窗口等流程事件，不记录选文或答句。向 [GitHub Issues](https://github.com/yuki-uix/useleaf/issues) 主动提交的描述和附件会由 GitHub 处理；请使用脱敏示例，不要附真实词库或场景画像。
 
 System diagnostic logs record flow events such as shortcut and window handling, not selected text or practice drafts. Reports and attachments you choose to submit to [GitHub Issues](https://github.com/yuki-uix/useleaf/issues) are handled by GitHub. Use anonymized examples rather than your real collection or learning profile.
+
+小啄的收藏确认与姿态只保留在内存和当前界面，不新增收藏字段、画像信息、统计上传或学习判断。
+
+Woodpecker feedback and poses are temporary UI state. They add no stored collection fields, profile information, telemetry or learning judgments.

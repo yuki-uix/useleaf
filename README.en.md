@@ -12,11 +12,11 @@ The current interface and English-to-Chinese translations are designed for Chine
 
 ## Download and install
 
-The first public release, **0.7.0 (build 9)**, is available for **Apple Silicon Macs (arm64)**. Intel binaries are not included in this release.
+The current release, **0.7.1 (build 10)**, is available for **Apple Silicon Macs (arm64)**. Intel binaries are not included in this release.
 
 - [Latest release](https://github.com/yuki-uix/useleaf/releases/latest)
-- [Useleaf 0.7.0 DMG](https://github.com/yuki-uix/useleaf/releases/download/v0.7.0/Useleaf-0.7.0-macos-arm64.dmg)
-- [Useleaf 0.7.0 ZIP](https://github.com/yuki-uix/useleaf/releases/download/v0.7.0/Useleaf-0.7.0-macos-arm64.zip)
+- [Useleaf 0.7.1 DMG](https://github.com/yuki-uix/useleaf/releases/download/v0.7.1/Useleaf-0.7.1-macos-arm64.dmg)
+- [Useleaf 0.7.1 ZIP](https://github.com/yuki-uix/useleaf/releases/download/v0.7.1/Useleaf-0.7.1-macos-arm64.zip)
 
 Open the DMG and drag `Useleaf.app` into **Applications**, or unzip and move the app there. Search for **Useleaf** in Apps or Spotlight to launch it.
 
@@ -44,6 +44,8 @@ flowchart LR
 3. Read the Chinese meaning or translation, listen in either accent, and save with **`⌘S`**. Press **Esc** to return to reading. Words and known phrases use the bundled dictionary; other selections use Apple Translation when available. You can still save originals if lookup fails.
 4. Choose your work and life scenarios from options. Set whether you mainly speak, write, do both, or only need to understand; frequency can remain unspecified.
 5. Start a short practice round of up to 10 entries. Recall the meaning or expression before revealing the reference, then assess your answer to schedule the next review. Due reviews come first.
+
+The woodpecker companion gives a single silent confirmation after a successful new save, waits quietly during recall, and rests at the end of a session. Animations respect Reduced Motion; no streaks or reward counters are added.
 
 Pronunciation is also available directly in the collection. Search, undo the most recent deletion, and export originals as TXT or CSV without reopening lookup.
 

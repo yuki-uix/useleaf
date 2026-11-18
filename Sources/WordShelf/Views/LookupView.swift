@@ -386,6 +386,10 @@ struct LookupView: View {
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if let confirmation = model.currentSaveConfirmation {
+                UseleafSaveConfirmationView(confirmation: confirmation)
+                    .id(confirmation.id)
+            }
             if let notice = model.notice {
                 Text(notice)
                     .font(.system(size: 11))

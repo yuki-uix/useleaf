@@ -17,7 +17,8 @@ fi
 swift build "${build_arguments[@]}"
 binary_directory="$(swift build "${build_arguments[@]}" --show-bin-path)"
 application_directory="$PWD/dist/Useleaf.app"
-swift scripts/make_icon.swift .build/AppIcon.iconset
+swiftc Sources/WordShelf/Views/UseleafArtwork.swift scripts/make_icon.swift -o .build/make-useleaf-icon
+.build/make-useleaf-icon .build/AppIcon.iconset Support/Brand
 iconutil -c icns .build/AppIcon.iconset -o Support/AppIcon.icns
 rm -rf "$application_directory"
 mkdir -p "$application_directory/Contents/MacOS" "$application_directory/Contents/Resources"

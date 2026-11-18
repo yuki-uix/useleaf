@@ -29,6 +29,12 @@ private actor MissingDictionary: DictionaryLookingUp {
     }
 }
 
+private actor SaveFeedbackDictionary: DictionaryLookingUp {
+    func lookup(_ word: String) async throws -> DictionaryEntry {
+        DictionaryEntry(word: word, definitions: [DictionaryDefinition(text: "测试释义")], sourceName: "Test")
+    }
+}
+
 @MainActor
 private final class ControlledTranslator: TextTranslating {
     private var pending: [String: CheckedContinuation<String, Error>] = [:]
@@ -99,6 +105,132 @@ struct AppModelTests {
         let saved = try JSONDecoder().decode([String].self, from: Data(contentsOf: store.fileURL))
         #expect(saved == ["Resilient"])
         #expect(WordStore(directoryURL: directory).words == ["Resilient"])
+    }
+
+    @Test func aNewSaveConfirmsThePersistedOriginalWithoutAddingCollectionMetadata() async throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = WordStore(directoryURL: directory)
+        let model = AppModel(store: store, dictionary: SaveFeedbackDictionary())
+        defer { model.cancelLookup() }
+        let original = "Could you clarify this?\nI mean the deployment."
+        model.lookup(original)
+        #expect(await waitFor { if case .found = model.lookupState { return true }; return false })
+        #expect(model.saveConfirmation == nil)
+        model.saveCurrentWord()
+
+        let confirmation = try #require(model.saveConfirmation)
+        #expect(confirmation.original == original)
+        #expect(model.currentSaveConfirmation == confirmation)
+        #expect(model.notice == nil)
+        let bytes = try Data(contentsOf: store.fileURL)
+        #expect(try JSONDecoder().decode([String].self, from: bytes) == [original])
+        let reopened = AppModel(store: WordStore(directoryURL: directory), dictionary: SaveFeedbackDictionary())
+        #expect(reopened.words == [original])
+        #expect(reopened.saveConfirmation == nil)
+
+        model.lookup("Follow up")
+        #expect(await waitFor { if case .found = model.lookupState { return true }; return false })
+        model.saveCurrentWord()
+        let next = try #require(model.saveConfirmation)
+        #expect(next.id != confirmation.id)
+        #expect(next.original == "Follow up")
+        #expect(try JSONDecoder().decode([String].self, from: Data(contentsOf: store.fileURL)) == ["Follow up", original])
+    }
+
+    @Test func existingAndRepeatedSavesDoNotReplayConfirmationOrRewriteTheCollection() async throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = WordStore(directoryURL: directory)
+        try store.add("Resilient")
+        let existingBytes = try Data(contentsOf: store.fileURL)
+        let model = AppModel(store: store, dictionary: SaveFeedbackDictionary())
+        defer { model.cancelLookup() }
+        model.lookup("resilient")
+        #expect(await waitFor { if case .found = model.lookupState { return true }; return false })
+        #expect(model.currentWordIsSaved)
+        #expect(model.saveConfirmation == nil)
+        model.saveCurrentWord()
+        #expect(model.saveConfirmation == nil)
+        #expect(model.currentSaveConfirmation == nil)
+        #expect(try Data(contentsOf: store.fileURL) == existingBytes)
+
+        model.lookup("New expression")
+        #expect(await waitFor { if case .found = model.lookupState { return true }; return false })
+        model.saveCurrentWord()
+        #expect(model.saveConfirmation != nil)
+        let insertedBytes = try Data(contentsOf: store.fileURL)
+        model.saveCurrentWord()
+        #expect(model.saveConfirmation == nil)
+        #expect(model.currentSaveConfirmation == nil)
+        #expect(try Data(contentsOf: store.fileURL) == insertedBytes)
+        #expect(model.words == ["New expression", "Resilient"])
+    }
+
+    @Test func saveFailuresNeverConfirmSuccessAndPreserveTheBlockingOrCorruptFile() async throws {
+        for corruptCollection in [false, true] {
+            let directory = temporaryDirectory()
+            defer { try? FileManager.default.removeItem(at: directory) }
+            let preservedURL: URL
+            let originalBytes: Data
+            if corruptCollection {
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                preservedURL = directory.appendingPathComponent("words.json")
+                originalBytes = Data("{not a vocabulary array}".utf8)
+            } else {
+                // A regular file at the directory path makes createDirectory fail
+                // deterministically, including when tests run with elevated rights.
+                preservedURL = directory
+                originalBytes = Data("keep this file".utf8)
+            }
+            try originalBytes.write(to: preservedURL)
+            let model = AppModel(store: WordStore(directoryURL: directory), dictionary: SaveFeedbackDictionary())
+            defer { model.cancelLookup() }
+            model.lookup("cache")
+            #expect(await waitFor { if case .found = model.lookupState { return true }; return false })
+            model.saveCurrentWord()
+            #expect(model.saveConfirmation == nil)
+            #expect(model.currentSaveConfirmation == nil)
+            #expect(model.words.isEmpty)
+            #expect(model.notice?.contains("收藏失败") == true)
+            #expect(try Data(contentsOf: preservedURL) == originalBytes)
+        }
+    }
+
+    @Test func saveConfirmationDoesNotFollowEditingRequeryOrLeavingThePopup() async throws {
+        for action in ["edit", "new lookup", "same lookup", "cancel", "dismiss", "manual", "remove and undo"] {
+            let directory = temporaryDirectory()
+            defer { try? FileManager.default.removeItem(at: directory) }
+            let store = WordStore(directoryURL: directory)
+            let model = AppModel(store: store, dictionary: SaveFeedbackDictionary())
+            defer { model.cancelLookup() }
+            model.lookup("Resilient")
+            #expect(await waitFor { if case .found = model.lookupState { return true }; return false })
+            model.saveCurrentWord()
+            #expect(model.currentSaveConfirmation != nil)
+            let savedBytes = try Data(contentsOf: store.fileURL)
+
+            switch action {
+            case "edit": model.query = "Resilient!"
+            case "new lookup": model.lookup("ephemeral")
+            case "same lookup": model.lookup("Resilient")
+            case "cancel": model.cancelLookup()
+            case "dismiss": model.dismissPopup()
+            case "remove and undo":
+                model.removeWord("Resilient")
+                #expect(model.saveConfirmation == nil)
+                model.undoRemoval()
+            default: model.prepareManualLookup()
+            }
+            #expect(model.saveConfirmation == nil)
+            #expect(model.currentSaveConfirmation == nil)
+            if action.contains("lookup") {
+                #expect(await waitFor { if case .found = model.lookupState { return true }; return false })
+                #expect(model.saveConfirmation == nil)
+            }
+            #expect(model.words == ["Resilient"])
+            #expect(try Data(contentsOf: store.fileURL) == savedBytes)
+        }
     }
 
     @Test func manualLookupClearsPriorCaptureFailure() async {
