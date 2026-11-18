@@ -1,0 +1,95 @@
+name: macOS build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  build:
+    # The application uses macOS 26.4 Translation APIs behind availability
+    # guards, so it needs Xcode 26.4+ even though its deployment target is 14.
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify toolchain and Apple Silicon runner
+        run: |
+          test "$(uname -m)" = arm64
+          xcodebuild -version
+          swift --version
+      - name: Run tests
+        run: swift test
+      - name: Build application
+        run: scripts/build_app.sh release
+      - name: Find built application and verify release version
+        id: app
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          shopt -s nullglob
+          apps=(dist/*.app)
+          test "${#apps[@]}" = 1
+          application_path="${apps[0]}"
+          version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$application_path/Contents/Info.plist")
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            test "$RELEASE_TAG" = "v$version"
+          fi
+          printf 'path=%s\n' "$application_path" >> "$GITHUB_OUTPUT"
+      - name: Package ZIP, DMG and checksums
+        env:
+          APPLICATION_PATH: ${{ steps.app.outputs.path }}
+        run: scripts/package_release.sh "$APPLICATION_PATH" dist/release
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: macos-arm64-release
+          path: dist/release/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: macos-arm64-release
+          path: release
+      - name: Verify downloaded checksums
+        working-directory: release
+        run: sha256sum -c SHA256SUMS
+      - name: Create or update public release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            if [[ -f "docs/releases/$RELEASE_TAG.md" ]]; then
+              gh release create "$RELEASE_TAG" --verify-tag --title "Useleaf $RELEASE_TAG · 拾用" --notes-file "docs/releases/$RELEASE_TAG.md" --draft
+            else
+              gh release create "$RELEASE_TAG" --verify-tag --generate-notes --draft
+            fi
+          fi
+          gh release upload "$RELEASE_TAG" release/* --clobber
+          gh release edit "$RELEASE_TAG" --draft=false

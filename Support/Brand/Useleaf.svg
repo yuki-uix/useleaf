@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Useleaf: a leaf-shaped speech bubble with quotation marks">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="1" x2="1" y2="0">
+      <stop stop-color="#123F3B"/><stop offset="1" stop-color="#2F7D6D"/>
+    </linearGradient>
+    <path id="quote" d="M24 103H62C76 103 86 93 86 79V37C84 -5 60 -37 15 -50L5 -24C29 -13 39 1 42 14H24C10 14 0 24 0 38V79C0 93 10 103 24 103Z"/>
+  </defs>
+  <rect x="32" y="32" width="960" height="960" rx="216" fill="url(#tile)"/>
+  <g transform="translate(0 1024) scale(1 -1)">
+    <path d="M292 374C239 480 270 613 362 685C470 770 632 742 787 789C811 609 791 453 682 363C615 307 511 287 424 306L270 224Z" fill="#F7F4E8"/>
+    <g fill="#1E5B4F"><use href="#quote" x="384" y="476"/><use href="#quote" x="518" y="476"/></g>
+  </g>
+</svg>

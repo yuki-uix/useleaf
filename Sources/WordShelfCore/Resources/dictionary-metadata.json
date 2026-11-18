@@ -1,0 +1,14 @@
+{
+  "name": "ECDICT",
+  "repository": "https://github.com/skywind3000/ECDICT",
+  "revision": "39cfb9672c0906b63569e0453c2e6abfb9ab182a",
+  "license": "MIT",
+  "source_url": "https://raw.githubusercontent.com/skywind3000/ECDICT/39cfb9672c0906b63569e0453c2e6abfb9ab182a/ecdict.csv",
+  "source_sha256": "d1ecbdf9ee2b920afb6f430ca6b6bb9f559588cf0dff86e04bd255f9390843cc",
+  "entry_count": 770611,
+  "frequency_fields": {
+    "bnc_rank": "ECDICT BNC rank",
+    "contemporary_rank": "ECDICT frq rank"
+  },
+  "database_sha256": "ffcac9476841d72ca1de7e2c1a7694c9c342d0350656f9ff7b412f59677da3cd"
+}
