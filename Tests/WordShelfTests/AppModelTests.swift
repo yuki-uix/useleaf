@@ -403,4 +403,19 @@ struct AppModelTests {
         #expect(model.notice?.contains("CancellationError") == false)
         #expect(model.canSaveCurrentWord)
     }
+
+    @Test func preparingLanguagesFromManagementDoesNotReopenAnOldReadingLookup() async {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = AppModel(store: WordStore(directoryURL: directory), dictionary: MissingDictionary(), translator: SetupTranslator())
+        model.lookup("Keep this reading selection.")
+        #expect(await waitFor { model.translationSetupRequired })
+        var popupRequests = 0
+        model.onShowCurrentLookup = { popupRequests += 1 }
+        model.prepareTranslation(retryCurrentLookup: false)
+        #expect(await waitFor { !model.isPreparingTranslation })
+        #expect(popupRequests == 0)
+        #expect(model.words.isEmpty)
+        #expect(model.query == "Keep this reading selection.")
+    }
 }

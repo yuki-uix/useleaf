@@ -6,17 +6,20 @@
 <p align="center">Turn the English you encounter into expressions you can use.</p>
 <p align="center"><a href="README.md">简体中文</a> · <a href="https://github.com/yuki-uix/useleaf/releases/latest">Download for macOS</a> · <a href="docs/PRIVACY.md">Privacy</a></p>
 
-Useleaf is a native macOS companion for Chinese speakers learning English through everyday reading. Select a word, phrase or sentence, look it up without leaving your reading flow, and save the original. Practice later with recommendations based on your work and life scenarios, active recall and spaced review.
+Useleaf is a quiet menu-bar companion for reading and using English on macOS. Select a word, phrase or sentence, look it up and listen, then optionally save the original. When you are writing, find it again from the menu bar and copy it back into your work.
 
 The current interface and English-to-Chinese translations are designed for Chinese-speaking learners. No account or cloud language-model service is required.
 
+The current version is **0.8.0 (build 11)**. See the [0.8.0 release notes](docs/releases/v0.8.0.md) for the lightweight companion update.
+
 ## Download and install
 
-The current release, **0.7.1 (build 10)**, is available for **Apple Silicon Macs (arm64)**. Intel binaries are not included in this release.
+The current release, **0.8.0 (build 11)**, is available for **Apple Silicon Macs (arm64)**. Intel binaries are not included in this release.
 
 - [Latest release](https://github.com/yuki-uix/useleaf/releases/latest)
-- [Useleaf 0.7.1 DMG](https://github.com/yuki-uix/useleaf/releases/download/v0.7.1/Useleaf-0.7.1-macos-arm64.dmg)
-- [Useleaf 0.7.1 ZIP](https://github.com/yuki-uix/useleaf/releases/download/v0.7.1/Useleaf-0.7.1-macos-arm64.zip)
+- [Useleaf 0.8.0 DMG](https://github.com/yuki-uix/useleaf/releases/download/v0.8.0/Useleaf-0.8.0-macos-arm64.dmg)
+- [Useleaf 0.8.0 ZIP](https://github.com/yuki-uix/useleaf/releases/download/v0.8.0/Useleaf-0.8.0-macos-arm64.zip)
+- [SHA256SUMS](https://github.com/yuki-uix/useleaf/releases/download/v0.8.0/SHA256SUMS)
 
 Open the DMG and drag `Useleaf.app` into **Applications**, or unzip and move the app there. Search for **Useleaf** in Apps or Spotlight to launch it.
 
@@ -28,36 +31,52 @@ This release uses an **ad hoc signature**. It is **not Developer ID signed or no
 | macOS 15+ | Apple on-device sentence translation; English and Simplified Chinese language packs required |
 | Installed system voices | British (`en-GB`) and American (`en-US`) pronunciation |
 
-## From reading to practice
+## From reading to expression
 
 ```mermaid
 flowchart LR
     A[Select English] --> B[Look up and listen]
-    B --> C[Save the original]
-    C --> D[Match personal scenarios]
-    D --> E[Recall before revealing]
-    E --> F[Review when due]
+    B -->|Optional| C[Save in place]
+    B -->|Esc or click outside| D[Continue reading]
+    C -->|Esc or click outside| D
+    D -->|When writing| E[Find saved English in menu bar]
+    E --> F[Copy original and paste in writing app]
 ```
 
-1. Open Useleaf and enable **Accessibility** in **System Settings → Privacy & Security → Accessibility** when you want cross-app selection capture. Manual lookup works without this permission.
-2. Select English in a browser, text-based PDF or another reading app, then press **Control + Option + D (`⌃⌥D`)**. Scanned documents and images do not have OCR support.
-3. Read the Chinese meaning or translation, listen in either accent, and save with **`⌘S`**. Press **Esc** to return to reading. Words and known phrases use the bundled dictionary; other selections use Apple Translation when available. You can still save originals if lookup fails.
-4. Choose your work and life scenarios from options. Set whether you mainly speak, write, do both, or only need to understand; frequency can remain unspecified.
-5. Start a short practice round of up to 10 entries. Recall the meaning or expression before revealing the reference, then assess your answer to schedule the next review. Due reviews come first.
+### Look up without leaving the page
 
-The woodpecker companion gives a single silent confirmation after a successful new save, waits quietly during recall, and rests at the end of a session. Animations respect Reduced Motion; no streaks or reward counters are added.
+- Select English in a browser, text-based PDF or another reading app, then press **Control + Option + D (`⌃⌥D`)**. Scanned documents and images do not have OCR support.
+- The popup is about **360pt wide** and adjusts its height to the content. The original, concise meaning and pronunciation come first; open editing or additional meanings when needed.
+- Words and known phrases use the bundled dictionary; other selections use Apple Translation when available. You can still save originals if lookup fails.
+- Click **Save original** (`收藏原文`) or press **`⌘S`**. Saving confirms in place and does not open management or practice. Press **Esc** or click outside to continue reading.
+- British and American system pronunciation can be selected in the popup. The woodpecker gives one silent confirmation after a successful new save and respects Reduced Motion.
 
-Pronunciation is also available directly in the collection. Search, undo the most recent deletion, and export originals as TXT or CSV without reopening lookup.
+### Find it again while writing
 
-| Suggested purpose | Practice |
-| --- | --- |
-| Want to use | Recall the English from its meaning and your scenario; try saying or writing it |
-| Understand only | Recall the meaning after seeing the English |
-| Keep for reference | Retain it for lookup without adding it to the review queue |
+- **Left-click the menu-bar woodpecker** to open the compact collection finder.
+- Search by an **English fragment of the saved original**, ignoring case. A single match expands automatically; other results can be expanded individually.
+- Read the temporary meaning, listen, or click **Copy original** (`复制原文`). Successful copying closes the panel and returns to the previous writing app. Press **`⌘V`** yourself where you want the expression.
+- Search matches the saved English text; Chinese intent search is not included. Copying does not automatically insert or send text.
 
-**Professional relevance alone defaults to understanding.** A specialist term needs a concrete speaking or writing use case before it is recommended for productive practice. Corpus frequency, repeated lookups and broad industry matches do not establish that need. Your explicit choice for an entry takes priority.
+### Manage and recall when you choose
 
-Recommendations use explainable local rules, dictionary evidence and available Natural Language models. They are estimates, not claims about your proficiency or future needs. Practice uses reference-based self-assessment; the app does not automatically grade grammar or spoken answers.
+**Right-click the menu-bar woodpecker** for manual lookup, **Manage collection and options** (`管理收藏与选项…`), export and quit. The finder's small more button also opens management.
+
+Search, deletion with undo and TXT / CSV export remain available. Scenario options and optional recall stay in the management window. Saving does not require classification or a daily task.
+
+Scenario options can still describe work, life, speaking/writing goals and frequency. **Professional relevance alone defaults to understanding.** A specialist term needs a concrete speaking or writing use case before it is recommended for productive practice. Corpus frequency and repeated lookups do not establish that need. Your explicit choice takes priority.
+
+Optional recall keeps the attempt-first, reveal-and-self-assess flow. Skipping does not count as a learning result. Recommendations are conservative local estimates; the app does not automatically grade grammar or spoken answers.
+
+## First use
+
+1. Move `Useleaf.app` into **Applications** and open it. It stays in the menu bar without opening management automatically.
+2. Right-click the woodpecker and choose **Enable selection access** (`开启划词权限…`). Allow Useleaf in **System Settings → Privacy & Security → Accessibility**. Manual lookup works without this permission.
+3. Select English and press **`⌃⌥D`**. The reading app must expose selectable or copyable text.
+4. For sentence translation, open **Manage collection and options → Prepare sentence translation** (`准备句子翻译…`) and prepare Apple's English and Simplified Chinese language packs.
+5. Left-click the woodpecker when you want to find a saved expression. Scenario setup and recall can wait until you want them.
+
+Within Useleaf, **`⌘L`** opens manual lookup, **`⌘B`** opens the finder, **`⌘E`** exports and **`⌘Q`** quits. Only **`⌃⌥D`** is a cross-app selection shortcut.
 
 ## Local data and permissions
 
@@ -65,6 +84,9 @@ Recommendations use explainable local rules, dictionary evidence and available N
 - Scenario choices, purpose feedback, distinct lookup dates for saved entries and review progress are stored separately.
 - Data stays in `~/Library/Application Support/com.yuki.wordshelf/`: `words.json` and `learning.json`. The legacy directory is retained so existing WordShelf / 拾词 users keep their collection and learning progress.
 - Accessibility capture runs only when you trigger the shortcut. A temporary copy operation is used when an app does not expose its selection; the clipboard is restored only if no newer change occurred.
+- While a transient popup is visible, an outside mouse-click listener lets it dismiss. That listener does not read keys or page content, retain click history, or run when both transient panels are closed.
+- **Copy original** deliberately replaces the clipboard with the complete saved original. You paste it yourself in the writing app. This differs from the temporary selection-capture fallback, which restores the clipboard.
+- The `words.json` original-string array is unchanged in 0.8.0. Finder searches, temporary meanings, pronunciation and copying add no collection fields or encounter dates.
 - There are no accounts, telemetry, ads or cloud sync. Initial Apple language-pack preparation requires a system download; translation and dictionary lookup run locally.
 
 See [Privacy](docs/PRIVACY.md) for clipboard behavior, storage details and system-service boundaries. Do not attach your real collection or learning profile to public bug reports.

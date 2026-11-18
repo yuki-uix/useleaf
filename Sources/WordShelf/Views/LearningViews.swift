@@ -210,7 +210,6 @@ struct LearningProfileSheet: View {
         .background(WordShelfTheme.canvas)
         .foregroundStyle(WordShelfTheme.ink)
         .tint(WordShelfTheme.accent)
-        .environment(\.colorScheme, .light)
     }
 
     private var validationMessage: String? {
@@ -495,7 +494,6 @@ struct LearningReviewView: View {
         .background(WordShelfTheme.canvas)
         .foregroundStyle(WordShelfTheme.ink)
         .tint(WordShelfTheme.accent)
-        .environment(\.colorScheme, .light)
         .onExitCommand { close() }
     }
 

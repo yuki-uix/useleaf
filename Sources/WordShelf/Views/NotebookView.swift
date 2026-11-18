@@ -24,8 +24,8 @@ struct NotebookView: View {
                 .padding(.bottom, 22)
 
             HStack(alignment: .firstTextBaseline) {
-                Text("生词本")
-                    .font(.system(size: 29, weight: .semibold))
+                Text("管理收藏")
+                    .font(.system(size: 25, weight: .medium))
                 Text("\(model.words.count) 条收藏")
                     .font(.system(size: 12))
                     .foregroundStyle(WordShelfTheme.secondary)
@@ -35,14 +35,27 @@ struct NotebookView: View {
             }
             .padding(.bottom, 18)
 
-            LearningNotebookSummary(learning: learning, onProfile: {
-                isProfilePresented = true
-            }, onReview: {
-                model.stopNotebookPronunciation()
-                learning.startReview()
-                isReviewPresented = true
-            })
-            .padding(.bottom, 14)
+            HStack(spacing: 16) {
+                Button("场景选项…") { isProfilePresented = true }
+                    .accessibilityIdentifier("notebook.profile")
+                Button("随手回忆") {
+                    model.stopNotebookPronunciation()
+                    learning.startReview()
+                    isReviewPresented = true
+                }
+                .disabled(model.words.isEmpty)
+                .accessibilityIdentifier("notebook.review")
+                if #available(macOS 15.0, *) {
+                    Button(model.isPreparingTranslation ? "正在准备翻译…" : "准备句子翻译…") { model.prepareTranslation(retryCurrentLookup: false) }
+                        .disabled(model.isPreparingTranslation)
+                        .accessibilityIdentifier("notebook.prepareTranslation")
+                }
+                Spacer()
+            }
+            .font(.system(size: 11))
+            .buttonStyle(.plain)
+            .foregroundStyle(WordShelfTheme.secondary)
+            .padding(.bottom, 16)
 
             if model.words.isEmpty {
                 emptyNotebook
@@ -61,7 +74,6 @@ struct NotebookView: View {
         .background(WordShelfTheme.canvas)
         .foregroundStyle(WordShelfTheme.ink)
         .tint(WordShelfTheme.accent)
-        .environment(\.colorScheme, .light)
         .onChange(of: search) { _, _ in
             model.stopNotebookPronunciation()
         }
@@ -366,7 +378,7 @@ private struct SavedWordRow: View {
                 }
         }
         .buttonStyle(.plain)
-        .foregroundStyle(isPlaying ? Color.white : WordShelfTheme.accent)
+        .foregroundStyle(isPlaying ? WordShelfTheme.onAccent : WordShelfTheme.accent)
         .help(isPlaying ? "停止\(accent.title)朗读这条收藏原文" : "使用\(accent.title)系统语音朗读这条收藏原文")
         .accessibilityLabel("\(isPlaying ? "停止" : "播放")\(accent.title)发音：\(word)")
         .accessibilityIdentifier("notebook.pronounce.\(accent == .british ? "british" : "american").\(word)")

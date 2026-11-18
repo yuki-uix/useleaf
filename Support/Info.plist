@@ -6,12 +6,13 @@
     <key>CFBundleIdentifier</key><string>com.yuki.wordshelf</string>
     <key>CFBundleName</key><string>Useleaf</string>
     <key>CFBundleDisplayName</key><string>拾用 Useleaf</string>
-    <key>CFBundleShortVersionString</key><string>0.7.1</string>
-    <key>CFBundleVersion</key><string>10</string>
+    <key>CFBundleShortVersionString</key><string>0.8.0</string>
+    <key>CFBundleVersion</key><string>11</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>NSHighResolutionCapable</key><true/>
+    <key>LSUIElement</key><true/>
     <key>NSPrincipalClass</key><string>NSApplication</string>
     <key>NSHumanReadableCopyright</key><string>Copyright © 2026 yuki-uix. Useleaf and ECDICT are distributed under the MIT License.</string>
 </dict>

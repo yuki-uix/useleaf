@@ -1,14 +1,26 @@
+import AppKit
 import SwiftUI
 
 enum WordShelfTheme {
-    static let canvas = Color(red: 245 / 255, green: 247 / 255, blue: 250 / 255)
-    static let surface = Color.white
-    static let ink = Color(red: 25 / 255, green: 48 / 255, blue: 68 / 255)
-    static let secondary = Color(red: 88 / 255, green: 105 / 255, blue: 121 / 255)
-    static let accent = Color(red: 25 / 255, green: 48 / 255, blue: 68 / 255)
-    static let subtle = Color(red: 232 / 255, green: 247 / 255, blue: 241 / 255)
-    static let border = Color(red: 216 / 255, green: 226 / 255, blue: 233 / 255)
-    static let warning = Color(red: 148 / 255, green: 74 / 255, blue: 41 / 255)
+    static let canvas = adaptive(0xF3F6F8, 0x1E292F)
+    static let surface = adaptive(0xFCFCFB, 0x243139)
+    static let ink = adaptive(0x203546, 0xE3EDF3)
+    static let secondary = adaptive(0x657681, 0xA4B4BF)
+    static let accent = adaptive(0x203B4C, 0xDCEAF0)
+    static let onAccent = adaptive(0xFFFFFF, 0x19303C)
+    static let subtle = adaptive(0xE5F4ED, 0x294139)
+    static let success = adaptive(0x286C59, 0x92DFC6)
+    static let border = adaptive(0xD9E2E6, 0x40515B)
+    static let warning = adaptive(0x944A29, 0xEFBD91)
+
+    private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let value = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
+            return NSColor(srgbRed: CGFloat((value >> 16) & 0xFF) / 255,
+                           green: CGFloat((value >> 8) & 0xFF) / 255,
+                           blue: CGFloat(value & 0xFF) / 255, alpha: 1)
+        })
+    }
 }
 
 struct WordShelfMark: View {
@@ -49,7 +61,7 @@ struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(isEnabled ? Color.white : WordShelfTheme.secondary)
+            .foregroundStyle(isEnabled ? WordShelfTheme.onAccent : WordShelfTheme.secondary)
             .padding(.horizontal, 16)
             .frame(height: 38)
             .background(

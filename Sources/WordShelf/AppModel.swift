@@ -22,6 +22,12 @@ struct SaveConfirmation: Equatable, Identifiable {
     let original: String
 }
 
+enum SavedExpressionError: LocalizedError {
+    case noLongerSaved
+
+    var errorDescription: String? { "这条原文已不在收藏中。" }
+}
+
 @MainActor
 final class AppModel: ObservableObject {
     @Published var query = "" {
@@ -148,6 +154,48 @@ final class AppModel: ObservableObject {
         stopPronunciation()
     }
 
+    /// Finder meanings are transient. Reading a saved entry never changes the
+    /// active selection lookup, encounter dates, or either persisted file.
+    func savedDefinition(for word: String) async throws -> DictionaryEntry {
+        guard words.contains(word) else { throw SavedExpressionError.noLongerSaved }
+        try Task.checkCancellation()
+        let entry: DictionaryEntry
+        do {
+            entry = try await dictionary.lookup(word)
+        } catch {
+            if error is CancellationError || Task.isCancelled { throw CancellationError() }
+            let translated = try await translator.translate(word)
+            try Task.checkCancellation()
+            guard !translated.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                throw TranslationServiceError.failed("暂未得到翻译结果，可以重试；仍可复制原文。")
+            }
+            entry = DictionaryEntry(word: word, definitions: [DictionaryDefinition(text: translated)],
+                                    sourceName: "Apple · 本机翻译")
+        }
+        try Task.checkCancellation()
+        guard words.contains(word) else { throw SavedExpressionError.noLongerSaved }
+        return entry
+    }
+
+    /// Explicit copy replaces the clipboard with the saved original alone.
+    /// Preserve the previous clipboard if a write cannot be completed.
+    func copySavedOriginal(_ word: String, to pasteboard: NSPasteboard = .general) -> Bool {
+        guard words.contains(word) else { return false }
+        do {
+            let snapshot = try PasteboardSnapshot(pasteboard: pasteboard)
+            let writeChangeCount = pasteboard.clearContents()
+            guard pasteboard.setString(word, forType: .string) else {
+                snapshot.restore(to: pasteboard, ifUnchangedSince: writeChangeCount)
+                notice = "复制未完成，请重试。"
+                return false
+            }
+            return true
+        } catch {
+            notice = "暂时无法复制，请重试。"
+            return false
+        }
+    }
+
     func lookup(_ raw: String? = nil) {
         stopPronunciation()
         saveConfirmation = nil
@@ -215,9 +263,9 @@ final class AppModel: ObservableObject {
         lookupID = UUID()
     }
 
-    func prepareTranslation() {
+    func prepareTranslation(retryCurrentLookup: Bool = true) {
         guard !isPreparingTranslation else { return }
-        let pending = lookupWord
+        let pending = retryCurrentLookup ? lookupWord : nil
         isPreparingTranslation = true
         notice = "正在准备中英离线翻译，首次使用需要下载语言。"
         // A regular window hosts the system's language-download sheet.
